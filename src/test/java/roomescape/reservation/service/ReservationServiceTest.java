@@ -7,23 +7,20 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import roomescape.common.exception.DomainException;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
-import roomescape.reservation.repository.JdbcReservationRepository;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
-import roomescape.reservation.service.validator.ReservationValidator;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.reservationtime.repository.JdbcReservationTimeRepository;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
 import roomescape.test_config.MutableClock;
 import roomescape.test_config.TestClockConfig;
 import roomescape.theme.domain.Theme;
-import roomescape.theme.repository.JdbcThemeRepository;
 import roomescape.theme.repository.ThemeRepository;
 
 import java.time.LocalDate;
@@ -35,15 +32,9 @@ import static roomescape.reservation.domain.Status.*;
 import static roomescape.reservation.exception.ReservationErrorCode.*;
 import static roomescape.reservationtime.exeption.ReservationTimeErrorCode.*;
 
-@JdbcTest
-@Import({
-        TestClockConfig.class,
-        ReservationService.class,
-        JdbcReservationRepository.class,
-        JdbcReservationTimeRepository.class,
-        JdbcThemeRepository.class,
-        ReservationValidator.class
-})
+@SpringBootTest
+@Import(TestClockConfig.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ReservationServiceTest {
 
     @Autowired
@@ -138,6 +129,8 @@ class ReservationServiceTest {
     @DisplayName("예약을 취소할 때 확정된 상태의 예약을 취소하면 기존 대기 중인 예약 중 가장 우선순위 높은 예약이 확정 상태로 변한다. ")
     public void cancel_success_promoteWaiting() {
         // given
+        clock.setFixed(LocalDate.of(2023, 7, 6));
+
         Theme theme = insertTheme("레벨2 탈출", "우테코 레벨2를 탈출하는 내용입니다.", "https://example.com/theme.png");
         ReservationTime time = insertReservationTime(LocalTime.of(10, 0));
         LocalDate date = LocalDate.of(2023, 8, 10);
