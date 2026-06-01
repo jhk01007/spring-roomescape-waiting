@@ -1,5 +1,6 @@
 package roomescape.reservation.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,20 +8,23 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import roomescape.common.exception.DomainException;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
+import roomescape.reservation.repository.JdbcReservationRepository;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
+import roomescape.reservation.service.validator.ReservationValidator;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.reservationtime.repository.JdbcReservationTimeRepository;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
 import roomescape.test_config.MutableClock;
 import roomescape.test_config.TestClockConfig;
 import roomescape.theme.domain.Theme;
+import roomescape.theme.repository.JdbcThemeRepository;
 import roomescape.theme.repository.ThemeRepository;
 
 import java.time.LocalDate;
@@ -32,9 +36,15 @@ import static roomescape.reservation.domain.Status.*;
 import static roomescape.reservation.exception.ReservationErrorCode.*;
 import static roomescape.reservationtime.exeption.ReservationTimeErrorCode.*;
 
-@SpringBootTest
-@Import(TestClockConfig.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@JdbcTest
+@Import({
+        TestClockConfig.class,
+        ReservationService.class,
+        JdbcReservationRepository.class,
+        JdbcReservationTimeRepository.class,
+        JdbcThemeRepository.class,
+        ReservationValidator.class
+})
 class ReservationServiceTest {
 
     @Autowired
@@ -52,6 +62,10 @@ class ReservationServiceTest {
     @Autowired
     MutableClock clock;
 
+    @BeforeEach
+    void resetClock() {
+        clock.reset();
+    }
 
     @Test
     @DisplayName("해당 날짜, 시간, 테마에 처음으로 예약을 추가하면 예약이 확정된다.")

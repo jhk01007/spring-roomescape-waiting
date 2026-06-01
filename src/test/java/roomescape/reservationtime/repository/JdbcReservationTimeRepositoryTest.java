@@ -4,13 +4,11 @@ import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.test_config.TestClockConfig;
 import roomescape.test_config.fixture.SQLFixtureGenerator;
 
 import java.sql.Timestamp;
@@ -22,9 +20,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@Import(TestClockConfig.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@JdbcTest
+@Import({JdbcReservationTimeRepository.class, SQLFixtureGenerator.class})
 class JdbcReservationTimeRepositoryTest {
 
     @Autowired

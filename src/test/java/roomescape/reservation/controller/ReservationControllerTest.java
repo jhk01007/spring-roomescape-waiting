@@ -7,15 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import roomescape.test_config.TestClockConfig;
 import roomescape.reservation.controller.dto.*;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
@@ -48,10 +44,7 @@ import static roomescape.common.auth.UserArgumentResolver.GUEST_NAME_HEADER;
 import static roomescape.common.exception.GlobalErrorCode.INVALID_GUEST_NAME_HEADER;
 import static roomescape.common.exception.GlobalErrorCode.VALIDATION_ERROR;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Import(TestClockConfig.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@WebMvcTest(controllers = ReservationController.class)
 class ReservationControllerTest {
 
     @Autowired

@@ -3,25 +3,30 @@ package roomescape.reservation.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import roomescape.common.dto.PageResult;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.JdbcReservationRepository;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
+import roomescape.reservation.service.validator.ReservationValidator;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.reservationtime.repository.JdbcReservationTimeRepository;
 import roomescape.test_config.MutableClock;
 import roomescape.test_config.TestClockConfig;
 import roomescape.test_config.fixture.SQLFixtureGenerator;
 import roomescape.theme.domain.Theme;
+import roomescape.theme.repository.JdbcThemeRepository;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -40,9 +45,19 @@ import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@Import({TestClockConfig.class, ReservationConcurrencyTest.ConcurrencyTestConfig.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@JdbcTest
+@Import({
+        TestClockConfig.class,
+        SQLFixtureGenerator.class,
+        ReservationService.class,
+        JdbcReservationRepository.class,
+        JdbcReservationTimeRepository.class,
+        JdbcThemeRepository.class,
+        ReservationValidator.class,
+        ReservationConcurrencyTest.ConcurrencyTestConfig.class
+})
+@Sql(value = "/acceptance-cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ReservationConcurrencyTest {
 
     @Autowired
