@@ -112,11 +112,13 @@ class ReservationConcurrencyTest {
     private long countConfirmedReservations(LocalDate date, Long timeId, Long themeId) {
         Long count = jdbcTemplate.queryForObject("""
                         SELECT COUNT(*)
-                        FROM reservation
-                        WHERE date = :date
-                          AND time_id = :timeId
-                          AND theme_id = :themeId
-                          AND status = 'CONFIRMED'
+                        FROM reservation r
+                        INNER JOIN reservation_slot s
+                            ON r.slot_id = s.id
+                        WHERE s.date = :date
+                          AND s.time_id = :timeId
+                          AND s.theme_id = :themeId
+                          AND r.status = 'CONFIRMED'
                         """,
                 new MapSqlParameterSource()
                         .addValue("date", Date.valueOf(date))
@@ -178,9 +180,8 @@ class ReservationConcurrencyTest {
         }
 
         @Override
-        public boolean updateDateAndTimeAndStatus(
-                Long id, LocalDate date, Long timeId, Status status, LocalDateTime lastModifiedAt) {
-            return delegate.updateDateAndTimeAndStatus(id, date, timeId, status, lastModifiedAt);
+        public boolean updateSlotAndStatus(Long id, Long slotId, Status status, LocalDateTime lastModifiedAt) {
+            return delegate.updateSlotAndStatus(id, slotId, status, lastModifiedAt);
         }
 
         @Override

@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import roomescape.common.dto.PageResult;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.ReservationSlot;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservationtime.domain.ReservationTime;
@@ -32,11 +33,14 @@ import static roomescape.reservation.domain.Status.CONFIRMED;
 import static roomescape.reservation.domain.Status.WAITING;
 
 @JdbcTest
-@Import({JdbcReservationRepository.class, SQLFixtureGenerator.class})
+@Import({JdbcReservationRepository.class, JdbcReservationSlotRepository.class, SQLFixtureGenerator.class})
 class JdbcReservationRepositoryTest {
 
     @Autowired
     private ReservationRepository reservationRepository;
+
+    @Autowired
+    private ReservationSlotRepository reservationSlotRepository;
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -51,7 +55,8 @@ class JdbcReservationRepositoryTest {
         // given
         ReservationTime time = sqlFixtureGenerator.insertReservationTime(LocalTime.of(10, 0));
         Theme theme = sqlFixtureGenerator.insertTheme("레벨2 탈출", "우테코 레벨2를 탈출하는 내용입니다.", "https://example.com/theme.png");
-        Reservation reservation = sqlFixtureGenerator.insertReservation("브라운", LocalDate.of(2023, 8, 5), time, theme, WAITING);
+        ReservationSlot reservationSlot = sqlFixtureGenerator.insertReservationSlot(LocalDate.of(2023, 8, 5), time, theme);
+        Reservation reservation = sqlFixtureGenerator.insertReservation("브라운", reservationSlot, WAITING);
 
         // when
         Optional<Reservation> optionalReservation = reservationRepository.findById(reservation.getId());
@@ -170,8 +175,9 @@ class JdbcReservationRepositoryTest {
         // given
         ReservationTime time = sqlFixtureGenerator.insertReservationTime(LocalTime.of(10, 0));
         Theme theme = sqlFixtureGenerator.insertTheme("레벨2 탈출", "우테코 레벨2를 탈출하는 내용입니다.", "https://example.com/theme.png");
-        Reservation reservation = Reservation.create(
-                "브라운", LocalDate.of(2023, 8, 5), time, theme, WAITING, LocalDateTime.now());
+        ReservationSlot slot = reservationSlotRepository.upsert(
+                ReservationSlot.create(LocalDate.of(2023, 8, 5), time, theme));
+        Reservation reservation = Reservation.create("브라운", slot, WAITING, LocalDateTime.now());
 
         // when
         Reservation saved = reservationRepository.save(reservation);
@@ -201,12 +207,14 @@ class JdbcReservationRepositoryTest {
 
         LocalDate updatedDate = LocalDate.of(2023, 9, 7);
         ReservationTime updatedTime = sqlFixtureGenerator.insertReservationTime(LocalTime.of(12, 0));
+        ReservationSlot updatedSlot = reservationSlotRepository.upsert(
+                ReservationSlot.create(updatedDate, updatedTime, theme));
         Status updatedStatus = CONFIRMED;
         LocalDateTime lastModifiedAt = LocalDateTime.of(2023, 9, 1, 10, 0);
 
         // when
-        boolean result = reservationRepository.updateDateAndTimeAndStatus(
-                reservation.getId(), updatedDate, updatedTime.getId(), updatedStatus, lastModifiedAt);
+        boolean result = reservationRepository.updateSlotAndStatus(
+                reservation.getId(), updatedSlot.getId(), updatedStatus, lastModifiedAt);
 
         // then
         assertThat(result).isTrue();
@@ -455,7 +463,11 @@ class JdbcReservationRepositoryTest {
 
     private Map<String, Object> findReservationById(Long id) {
         return jdbcTemplate.queryForMap("""
-                SELECT * FROM reservation r WHERE r.id = :id
+                SELECT r.*, s.date, s.time_id
+                FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
+                WHERE r.id = :id
                 """, new MapSqlParameterSource("id", id));
     }
 }

@@ -24,8 +24,7 @@ public interface ReservationRepository {
 
     Reservation save(Reservation reservation);
 
-    boolean updateDateAndTimeAndStatus(
-            Long id, LocalDate date, Long timeId, Status status, LocalDateTime lastModifiedAt);
+    boolean updateSlotAndStatus(Long id, Long slotId, Status status, LocalDateTime lastModifiedAt);
 
     boolean updateStatus(Long id, Status status);
 

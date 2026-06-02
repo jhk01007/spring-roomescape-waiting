@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import roomescape.common.dto.PageResult;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.ReservationSlot;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservationtime.domain.ReservationTime;
@@ -25,15 +26,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JdbcReservationRepository implements ReservationRepository {
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
-
-    @Override
-    public Optional<Reservation> findById(Long id) {
-        String sql = """
-                SELECT
+    private static final String RESERVATION_COLUMNS = """
                     r.id AS reservation_id,
                     r.guest_name,
-                    r.date,
+                    s.id AS slot_id,
+                    s.date,
                     r.status AS status,
                     r.last_modified_at AS last_modified_at,
                     t.id AS time_id,
@@ -44,11 +41,25 @@ public class JdbcReservationRepository implements ReservationRepository {
                     th.description AS theme_description,
                     th.thumbnail AS theme_thumbnail,
                     th.deleted_at AS theme_deleted_at
+            """;
+
+    private static final String RESERVATION_JOIN = """
                 FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
                 INNER JOIN reservation_time t
-                    ON r.time_id = t.id
+                    ON s.time_id = t.id
                 INNER JOIN theme th
-                    ON r.theme_id = th.id
+                    ON s.theme_id = th.id
+            """;
+
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    @Override
+    public Optional<Reservation> findById(Long id) {
+        String sql = """
+                SELECT
+                """ + RESERVATION_COLUMNS + RESERVATION_JOIN + """
                 WHERE r.id = :id
                 """;
 
@@ -62,32 +73,13 @@ public class JdbcReservationRepository implements ReservationRepository {
                         SELECT *
                         FROM (
                             SELECT
-                                r.id AS reservation_id,
-                                r.guest_name,
-                                r.date,
-                                r.status AS status,
-                                r.last_modified_at AS last_modified_at,
-
-                                t.id AS time_id,
-                                t.start_at,
-                                t.deleted_at AS time_deleted_at,
-
-                                th.id AS theme_id,
-                                th.name AS theme_name,
-                                th.description AS theme_description,
-                                th.thumbnail AS theme_thumbnail,
-                                th.deleted_at AS theme_deleted_at,
-
+                        """ + RESERVATION_COLUMNS + """
+                                ,
                                 ROW_NUMBER() OVER (
-                                    PARTITION BY r.date, t.id, th.id, r.status
+                                    PARTITION BY s.id, r.status
                                     ORDER BY r.last_modified_at
                                 ) AS wait_number
-
-                            FROM reservation r
-                            INNER JOIN reservation_time t
-                                ON r.time_id = t.id
-                            INNER JOIN theme th
-                                ON r.theme_id = th.id
+                        """ + RESERVATION_JOIN + """
                         ) x
                         WHERE x.reservation_id = :id
                         """,
@@ -99,28 +91,9 @@ public class JdbcReservationRepository implements ReservationRepository {
     public PageResult<Reservation> findAllByStatusCanceledNot(int page, int size) {
         List<Reservation> reservations = jdbcTemplate.query("""
                 SELECT
-                    r.id AS reservation_id,
-                    r.guest_name,
-                    r.date,
-                    r.status AS status,
-                    r.last_modified_at AS last_modified_at,
-                    
-                    t.id AS time_id,
-                    t.start_at,
-                    t.deleted_at AS time_deleted_at,
-                    
-                    th.id AS theme_id,
-                    th.name AS theme_name,
-                    th.description AS theme_description,
-                    th.thumbnail AS theme_thumbnail,
-                    th.deleted_at AS theme_deleted_at
-                FROM reservation r
-                INNER JOIN reservation_time t
-                    ON r.time_id = t.id
-                INNER JOIN theme th
-                    ON r.theme_id = th.id
+                """ + RESERVATION_COLUMNS + RESERVATION_JOIN + """
                 WHERE r.status != 'CANCELED'
-                ORDER BY r.date, t.start_at
+                ORDER BY s.date, t.start_at
                 LIMIT :size OFFSET :offset
                 """,
                 new MapSqlParameterSource()
@@ -145,31 +118,13 @@ public class JdbcReservationRepository implements ReservationRepository {
                 SELECT *
                 FROM (
                     SELECT
-                        r.id AS reservation_id,
-                        r.guest_name,
-                        r.date,
-                        r.status AS status,
-                        r.last_modified_at AS last_modified_at,
-
-                        t.id AS time_id,
-                        t.start_at,
-                        t.deleted_at AS time_deleted_at,
-
-                        th.id AS theme_id,
-                        th.name AS theme_name,
-                        th.description AS theme_description,
-                        th.thumbnail AS theme_thumbnail,
-                        th.deleted_at AS theme_deleted_at,
-
+                """ + RESERVATION_COLUMNS + """
+                        ,
                         ROW_NUMBER() OVER (
-                            PARTITION BY r.date, t.id, th.id, r.status
+                            PARTITION BY s.id, r.status
                             ORDER BY r.last_modified_at
                         ) AS wait_number
-                    FROM reservation r
-                    INNER JOIN reservation_time t
-                        ON r.time_id = t.id
-                    INNER JOIN theme th
-                        ON r.theme_id = th.id
+                """ + RESERVATION_JOIN + """
                 ) x
                 WHERE x.guest_name = :guestName
                 """,
@@ -179,36 +134,19 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public Optional<Reservation> findBySlotAndStatusWaitingAndWaitingNumberIsOne(LocalDate date, Long timeId, Long themeId) {
+    public Optional<Reservation> findBySlotAndStatusWaitingAndWaitingNumberIsOne(
+            LocalDate date, Long timeId, Long themeId) {
         return jdbcTemplate.query("""
                         SELECT *
                         FROM (
                             SELECT
-                                r.id AS reservation_id,
-                                r.guest_name,
-                                r.date,
-                                r.status AS status,
-                                r.last_modified_at AS last_modified_at,
-                                        
-                                t.id AS time_id,
-                                t.start_at,
-                                t.deleted_at AS time_deleted_at,
-                                        
-                                th.id AS theme_id,
-                                th.name AS theme_name,
-                                th.description AS theme_description,
-                                th.thumbnail AS theme_thumbnail,
-                                th.deleted_at AS theme_deleted_at,
-                                        
+                        """ + RESERVATION_COLUMNS + """
+                                ,
                                 ROW_NUMBER() OVER (
-                                    PARTITION BY r.date, t.id, th.id, r.status
+                                    PARTITION BY s.id, r.status
                                     ORDER BY r.last_modified_at
                                 ) AS wait_number
-                            FROM reservation r
-                            INNER JOIN reservation_time t
-                                ON r.time_id = t.id
-                            INNER JOIN theme th
-                                ON r.theme_id = th.id
+                        """ + RESERVATION_JOIN + """
                         ) x
                         WHERE date = :date
                           AND time_id = :timeId
@@ -229,14 +167,12 @@ public class JdbcReservationRepository implements ReservationRepository {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update("""
-                        INSERT INTO reservation (guest_name, date, time_id, theme_id, status, last_modified_at)
-                        VALUES (:guestName, :date, :timeId, :themeId, :status, :lastModifiedAt)
+                        INSERT INTO reservation (guest_name, slot_id, status, last_modified_at)
+                        VALUES (:guestName, :slotId, :status, :lastModifiedAt)
                         """,
                 new MapSqlParameterSource()
                         .addValue("guestName", reservation.getGuestName())
-                        .addValue("date", Date.valueOf(reservation.getDate()))
-                        .addValue("timeId", reservation.getTime().getId())
-                        .addValue("themeId", reservation.getTheme().getId())
+                        .addValue("slotId", reservation.getReservationSlot().getId())
                         .addValue("status", reservation.getStatus().toString())
                         .addValue("lastModifiedAt", Timestamp.valueOf(reservation.getLastModifiedAt())),
                 keyHolder,
@@ -246,17 +182,13 @@ public class JdbcReservationRepository implements ReservationRepository {
     }
 
     @Override
-    public boolean updateDateAndTimeAndStatus(
-            Long id, LocalDate date, Long timeId, Status status, LocalDateTime lastModifiedAt) {
-        String sql = """
+    public boolean updateSlotAndStatus(Long id, Long slotId, Status status, LocalDateTime lastModifiedAt) {
+        int count = jdbcTemplate.update("""
                 UPDATE reservation
-                SET date = :date, time_id = :timeId, status = :status, last_modified_at = :lastModifiedAt
+                SET slot_id = :slotId, status = :status, last_modified_at = :lastModifiedAt
                 WHERE id = :id
-                """;
-
-        int count = jdbcTemplate.update(sql, new MapSqlParameterSource()
-                .addValue("date", Date.valueOf(date))
-                .addValue("timeId", timeId)
+                """, new MapSqlParameterSource()
+                .addValue("slotId", slotId)
                 .addValue("status", status.toString())
                 .addValue("lastModifiedAt", Timestamp.valueOf(lastModifiedAt))
                 .addValue("id", id));
@@ -288,12 +220,14 @@ public class JdbcReservationRepository implements ReservationRepository {
             LocalDate date, Long timeId, Long themeId, String guestName) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM reservation
-                WHERE date = :date
-                  AND time_id = :timeId
-                  AND theme_id = :themeId
-                  AND guest_name = :guestName
-                  AND status != 'CANCELED'
+                FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
+                WHERE s.date = :date
+                  AND s.time_id = :timeId
+                  AND s.theme_id = :themeId
+                  AND r.guest_name = :guestName
+                  AND r.status != 'CANCELED'
                 """,
                 new MapSqlParameterSource()
                         .addValue("date", Date.valueOf(date))
@@ -308,11 +242,13 @@ public class JdbcReservationRepository implements ReservationRepository {
     public boolean existsBySlotAndStatusConfirmed(LocalDate date, Long timeId, Long themeId) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM reservation
-                WHERE date = :date
-                  AND time_id = :timeId
-                  AND theme_id = :themeId
-                  AND status = 'CONFIRMED';
+                FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
+                WHERE s.date = :date
+                  AND s.time_id = :timeId
+                  AND s.theme_id = :themeId
+                  AND r.status = 'CONFIRMED';
                 """,
                 new MapSqlParameterSource()
                         .addValue("date", Date.valueOf(date))
@@ -326,12 +262,14 @@ public class JdbcReservationRepository implements ReservationRepository {
     public boolean existsBySlotExceptReservation(LocalDate date, Long timeId, Long themeId, Long excludedId) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM reservation
-                WHERE date = :date
-                  AND time_id = :timeId
-                  AND theme_id = :themeId
-                  AND status = 'CONFIRMED'
-                  AND id != :excludedId
+                FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
+                WHERE s.date = :date
+                  AND s.time_id = :timeId
+                  AND s.theme_id = :themeId
+                  AND r.status = 'CONFIRMED'
+                  AND r.id != :excludedId
                 """,
                 new MapSqlParameterSource()
                         .addValue("date", Date.valueOf(date))
@@ -346,8 +284,10 @@ public class JdbcReservationRepository implements ReservationRepository {
     public boolean existByTimeId(Long timeId) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM reservation
-                WHERE time_id = :timeId AND status != 'CANCELED'
+                FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
+                WHERE s.time_id = :timeId AND r.status != 'CANCELED'
                 """, new MapSqlParameterSource("timeId", timeId), Integer.class);
         return count != null && count > 0;
     }
@@ -356,8 +296,10 @@ public class JdbcReservationRepository implements ReservationRepository {
     public boolean existByThemeId(Long themeId) {
         Integer count = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
-                FROM reservation
-                WHERE theme_id = :themeId AND status != 'CANCELED'
+                FROM reservation r
+                INNER JOIN reservation_slot s
+                    ON r.slot_id = s.id
+                WHERE s.theme_id = :themeId AND r.status != 'CANCELED'
                 """, new MapSqlParameterSource("themeId", themeId), Integer.class);
         return count != null && count > 0;
     }
@@ -377,44 +319,24 @@ public class JdbcReservationRepository implements ReservationRepository {
                 toLocalDateTime(resultSet.getTimestamp("theme_deleted_at"))
         );
 
+        ReservationSlot slot = ReservationSlot.of(
+                resultSet.getLong("slot_id"),
+                resultSet.getDate("date").toLocalDate(),
+                reservationTime,
+                theme
+        );
+
         return Reservation.of(
                 resultSet.getLong("reservation_id"),
                 resultSet.getString("guest_name"),
-                resultSet.getDate("date").toLocalDate(),
-                reservationTime,
-                theme,
+                slot,
                 Status.from(resultSet.getString("status")),
                 toLocalDateTime(resultSet.getTimestamp("last_modified_at"))
         );
     };
 
-    private final RowMapper<ReservationWaitingDto> reservationWaitingDtoRowMapper = (resultSet, rowNum) -> {
-        ReservationTime reservationTime = ReservationTime.of(
-                resultSet.getLong("time_id"),
-                resultSet.getTime("start_at").toLocalTime(),
-                toLocalDateTime(resultSet.getTimestamp("time_deleted_at"))
-        );
-
-        Theme theme = Theme.of(
-                resultSet.getLong("theme_id"),
-                resultSet.getString("theme_name"),
-                resultSet.getString("theme_description"),
-                resultSet.getString("theme_thumbnail"),
-                toLocalDateTime(resultSet.getTimestamp("theme_deleted_at"))
-        );
-
-        return ReservationWaitingDto.from(Reservation.of(
-                        resultSet.getLong("reservation_id"),
-                        resultSet.getString("guest_name"),
-                        resultSet.getDate("date").toLocalDate(),
-                        reservationTime,
-                        theme,
-                        Status.from(resultSet.getString("status")),
-                        toLocalDateTime(resultSet.getTimestamp("last_modified_at"))
-                ),
-                resultSet.getLong("wait_number")
-        );
-    };
+    private final RowMapper<ReservationWaitingDto> reservationWaitingDtoRowMapper = (resultSet, rowNum) ->
+            ReservationWaitingDto.from(reservationRowMapper.mapRow(resultSet, rowNum), resultSet.getLong("wait_number"));
 
     private LocalDateTime toLocalDateTime(Timestamp timestamp) {
         if (timestamp == null) {

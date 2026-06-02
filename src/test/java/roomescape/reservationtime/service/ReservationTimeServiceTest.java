@@ -7,9 +7,12 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import roomescape.common.exception.DomainException;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.ReservationSlot;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.JdbcReservationRepository;
+import roomescape.reservation.repository.JdbcReservationSlotRepository;
 import roomescape.reservation.repository.ReservationRepository;
+import roomescape.reservation.repository.ReservationSlotRepository;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.repository.JdbcReservationTimeRepository;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
@@ -30,6 +33,7 @@ import static roomescape.reservationtime.exeption.ReservationTimeErrorCode.*;
         TestClockConfig.class,
         ReservationTimeService.class,
         JdbcReservationRepository.class,
+        JdbcReservationSlotRepository.class,
         JdbcReservationTimeRepository.class,
         JdbcThemeRepository.class,
 })
@@ -40,6 +44,9 @@ class ReservationTimeServiceTest {
 
     @Autowired
     ReservationRepository reservationRepository;
+
+    @Autowired
+    ReservationSlotRepository reservationSlotRepository;
 
     @Autowired
     ReservationTimeRepository reservationTimeRepository;
@@ -95,6 +102,7 @@ class ReservationTimeServiceTest {
     }
 
     private Reservation insertReservation(String name, LocalDate date, ReservationTime time, Theme theme) {
-        return reservationRepository.save(Reservation.create(name, date, time, theme, Status.WAITING, LocalDateTime.now()));
+        ReservationSlot slot = reservationSlotRepository.upsert(ReservationSlot.create(date, time, theme));
+        return reservationRepository.save(Reservation.create(name, slot, Status.WAITING, LocalDateTime.now()));
     }
 }

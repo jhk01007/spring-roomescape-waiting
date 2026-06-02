@@ -6,6 +6,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.ReservationSlot;
 import roomescape.reservation.domain.Status;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.theme.domain.Theme;
@@ -27,6 +28,13 @@ public class SQLFixtureGenerator {
     }
 
     public Reservation insertReservation(
+            String guestName, ReservationSlot reservationSlot, Status status) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return insertReservation(guestName, reservationSlot, status, now);
+    }
+
+    public Reservation insertReservation(
             String guestName, LocalDate date, ReservationTime time, Theme theme, Status status) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -41,23 +49,42 @@ public class SQLFixtureGenerator {
             Status status,
             LocalDateTime lastModifiedAt
     ) {
+        ReservationSlot reservationSlot = insertReservationSlot(date, time, theme);
+
+        return insertReservation(guestName, reservationSlot, status, lastModifiedAt);
+    }
+
+    public Reservation insertReservation(
+            String guestName,
+            ReservationSlot reservationSlot,
+            Status status,
+            LocalDateTime lastModifiedAt
+    ) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update("""
-                        INSERT INTO reservation (guest_name, date, time_id, theme_id, status, last_modified_at)
-                        VALUES (:guestName, :date, :timeId, :themeId, :status, :lastModifiedAt)
+                        INSERT INTO reservation (guest_name, slot_id, status, last_modified_at)
+                        VALUES (:guestName, :slotId, :status, :lastModifiedAt)
                         """,
                 new MapSqlParameterSource()
                         .addValue("guestName", guestName)
-                        .addValue("date", Date.valueOf(date))
-                        .addValue("timeId", time.getId())
-                        .addValue("themeId", theme.getId())
+                        .addValue("slotId", reservationSlot.getId())
                         .addValue("status", status.toString())
                         .addValue("lastModifiedAt", Timestamp.valueOf(lastModifiedAt)),
                 keyHolder,
                 new String[]{"id"});
 
-        return Reservation.of(getGeneratedId(keyHolder), guestName, date, time, theme, status, lastModifiedAt);
+        return Reservation.of(
+                getGeneratedId(keyHolder),
+                guestName,
+                reservationSlot,
+                status,
+                lastModifiedAt
+        );
+    }
+
+    public void insertDeletedReservation(String guestName, ReservationSlot reservationSlot) {
+        insertReservation(guestName, reservationSlot, Status.CANCELED);
     }
 
     public void insertDeletedReservation(String guestName, LocalDate date, ReservationTime time, Theme theme) {
@@ -131,5 +158,32 @@ public class SQLFixtureGenerator {
 
     private Long getGeneratedId(KeyHolder keyHolder) {
         return keyHolder.getKey().longValue();
+    }
+
+    public ReservationSlot insertReservationSlot(LocalDate date, ReservationTime time, Theme theme) {
+        jdbcTemplate.update("""
+                        MERGE INTO reservation_slot (date, time_id, theme_id)
+                        KEY(date, time_id, theme_id)
+                        VALUES (:date, :timeId, :themeId)
+                        """,
+                new MapSqlParameterSource()
+                        .addValue("date", Date.valueOf(date))
+                        .addValue("timeId", time.getId())
+                        .addValue("themeId", theme.getId()));
+
+        Long slotId = jdbcTemplate.queryForObject("""
+                        SELECT id
+                        FROM reservation_slot
+                        WHERE date = :date
+                          AND time_id = :timeId
+                          AND theme_id = :themeId
+                        """,
+                new MapSqlParameterSource()
+                        .addValue("date", Date.valueOf(date))
+                        .addValue("timeId", time.getId())
+                        .addValue("themeId", theme.getId()),
+                Long.class);
+
+        return ReservationSlot.of(slotId, date, time, theme);
     }
 }

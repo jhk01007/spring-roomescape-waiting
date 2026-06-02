@@ -4,16 +4,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import roomescape.common.exception.DomainException;
 import roomescape.reservation.domain.Reservation;
+import roomescape.reservation.domain.ReservationSlot;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.JdbcReservationRepository;
+import roomescape.reservation.repository.JdbcReservationSlotRepository;
 import roomescape.reservation.repository.ReservationRepository;
+import roomescape.reservation.repository.ReservationSlotRepository;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
 import roomescape.reservation.service.validator.ReservationValidator;
@@ -40,6 +42,7 @@ import static roomescape.reservationtime.exeption.ReservationTimeErrorCode.*;
         TestClockConfig.class,
         ReservationService.class,
         JdbcReservationRepository.class,
+        JdbcReservationSlotRepository.class,
         JdbcReservationTimeRepository.class,
         JdbcThemeRepository.class,
         ReservationValidator.class
@@ -51,6 +54,9 @@ class ReservationServiceTest {
 
     @Autowired
     ReservationRepository reservationRepository;
+
+    @Autowired
+    ReservationSlotRepository reservationSlotRepository;
 
     @Autowired
     ReservationTimeRepository reservationTimeRepository;
@@ -539,6 +545,7 @@ class ReservationServiceTest {
     }
 
     private Reservation insertReservation(String name, LocalDate date, ReservationTime time, Theme theme, Status status) {
-        return reservationRepository.save(Reservation.create(name, date, time, theme, status, LocalDateTime.now(clock)));
+        ReservationSlot slot = reservationSlotRepository.upsert(ReservationSlot.create(date, time, theme));
+        return reservationRepository.save(Reservation.create(name, slot, status, LocalDateTime.now(clock)));
     }
 }
