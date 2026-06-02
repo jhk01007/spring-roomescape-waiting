@@ -11,7 +11,6 @@ import java.util.Objects;
 
 import static roomescape.common.domain.DomainPreconditions.requireNonNull;
 import static roomescape.reservation.exception.ReservationErrorCode.*;
-import static roomescape.reservationtime.exeption.ReservationTimeErrorCode.INVALID_RESERVATION_TIME;
 import static roomescape.theme.exception.ThemeErrorCode.INVALID_THEME;
 
 @Getter

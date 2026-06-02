@@ -7,6 +7,7 @@ import roomescape.common.dto.PageResult;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.ReservationSlot;
 import roomescape.reservation.domain.Status;
+import roomescape.reservation.exception.ReservationErrorCode;
 import roomescape.reservation.repository.ReservationSlotRepository;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
 import roomescape.reservation.service.validator.ReservationValidator;
@@ -42,26 +43,33 @@ public class ReservationService {
 
     @Transactional
     public ReservationWaitingResult create(String guestName, LocalDate date, Long timeId, Long themeId) {
-        ReservationTime time = getReservationTime(timeId);
-        Theme theme = getTheme(themeId);
-        ReservationSlot slot = ReservationSlot.create(date, time, theme);
+        ReservationSlot lockSlot = getAndLockReservationSlot(date, timeId, themeId);
 
         Status status = determineState(date, timeId, themeId);
 
-        Reservation reservation = Reservation.create(guestName, slot, status, LocalDateTime.now(clock));
+        Reservation reservation = Reservation.create(guestName, lockSlot, status, LocalDateTime.now(clock));
 
         reservationValidator.validateCreate(reservation);
 
-        ReservationSlot savedSlot = reservationSlotRepository.upsert(slot);
         Reservation saved = reservationRepository.save(Reservation.create(
                 guestName,
-                savedSlot,
+                lockSlot,
                 status,
                 reservation.getLastModifiedAt()
         ));
 
         return ReservationWaitingResult.from(reservationRepository.findWaitingById(saved.getId())
                 .orElseThrow(() -> new DomainException(RESERVATION_NOT_FOUND)));
+    }
+
+    private ReservationSlot getAndLockReservationSlot(LocalDate date, Long timeId, Long themeId) {
+        ReservationTime time = getReservationTime(timeId);
+        Theme theme = getTheme(themeId);
+        ReservationSlot slot = ReservationSlot.create(date, time, theme);
+        ReservationSlot savedSlot = reservationSlotRepository.upsert(slot);
+
+        return reservationSlotRepository.findByIdWithLock(savedSlot.getId())
+                .orElseThrow(() -> new DomainException(RESERVATION_SLOT_NOT_FOUND));
     }
 
     public PageResult<Reservation> findAllReservations(int page, int size) {

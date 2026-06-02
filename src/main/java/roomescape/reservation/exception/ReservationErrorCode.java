@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.*;
 public enum ReservationErrorCode implements ErrorPolicy {
     INVALID_RESERVATION_GUEST_NAME("예약자 이름은 비어 있을 수 없습니다.", BAD_REQUEST),
     INVALID_RESERVATION_DATE("예약 날짜는 비어 있을 수 없습니다.", BAD_REQUEST),
+    INVALID_RESERVATION_TIME("예약 시간은 비어 있을 수 없습니다.", BAD_REQUEST),
     INVALID_LAST_MODIFIED_AT("예약이 마지막으로 생성/수정 반영된 시각은 비어있을 수 없습니다.", INTERNAL_SERVER_ERROR),
     INVALID_STATUS("잘못된 형식의 예약 상태값입니다.", INTERNAL_SERVER_ERROR),
     INVALID_RESERVATION_SLOT("예약 슬롯은 비어있을 수 없습니다", BAD_REQUEST),
@@ -18,7 +19,9 @@ public enum ReservationErrorCode implements ErrorPolicy {
     CANNOT_EDIT_SAME_DATE_TIME("기존 날짜,시간으로는 수정할 수 없습니다.", BAD_REQUEST),
     CANNOT_CHANGE_ALREADY_STARTED_RESERVATION("이미 시작된 예약은 변경할 수 없습니다.", UNPROCESSABLE_ENTITY),
     CANNOT_CHANGE_OTHER_GUEST_RESERVATION("본인의 예약만 변경할 수 있습니다.", FORBIDDEN),
-    CANNOT_CHANGE_ALREADY_CANCELED("이미 취소된 예약은 변경할 수 없습니다.", CONFLICT);
+    CANNOT_CHANGE_ALREADY_CANCELED("이미 취소된 예약은 변경할 수 없습니다.", CONFLICT),
+    RESERVATION_SLOT_NOT_FOUND("존재하지 않는 예약 슬롯입니다.", NOT_FOUND),
+    ;
 
     private final String code;
     private final String message;

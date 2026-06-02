@@ -29,14 +29,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,7 +72,7 @@ class ReservationConcurrencyTest {
 
         // then
         long confirmedCount = countConfirmedReservations(date, time.getId(), theme.getId());
-//        assertThat(confirmedCount).isEqualTo(1);
+        assertThat(confirmedCount).isEqualTo(1);
     }
 
     private void executeConcurrently(Runnable first, Runnable second) throws Exception {
@@ -142,7 +139,6 @@ class ReservationConcurrencyTest {
     private static class SynchronizedReservationRepository implements ReservationRepository {
 
         private final ReservationRepository delegate;
-        private final CyclicBarrier concurrentCreateBarrier = new CyclicBarrier(2);
 
         private SynchronizedReservationRepository(ReservationRepository delegate) {
             this.delegate = delegate;
@@ -202,9 +198,7 @@ class ReservationConcurrencyTest {
 
         @Override
         public boolean existsBySlotAndStatusConfirmed(LocalDate date, Long timeId, Long themeId) {
-            boolean exists = delegate.existsBySlotAndStatusConfirmed(date, timeId, themeId);
-            awaitConcurrentCreate();
-            return exists;
+            return delegate.existsBySlotAndStatusConfirmed(date, timeId, themeId);
         }
 
         @Override
@@ -220,17 +214,6 @@ class ReservationConcurrencyTest {
         @Override
         public boolean existByThemeId(Long themeId) {
             return delegate.existByThemeId(themeId);
-        }
-
-        private void awaitConcurrentCreate() {
-            try {
-                concurrentCreateBarrier.await(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException(e);
-            } catch (BrokenBarrierException | TimeoutException e) {
-                throw new IllegalStateException(e);
-            }
         }
     }
 }
