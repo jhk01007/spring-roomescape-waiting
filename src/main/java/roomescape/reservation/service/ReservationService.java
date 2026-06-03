@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import roomescape.common.dto.PageResult;
+import roomescape.common.lock.DistributedLock;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
@@ -38,6 +39,7 @@ public class ReservationService {
     private final Clock clock;
 
     @Transactional
+    @DistributedLock(key = "'key:' + #date + ':' + #timeId + ':' + #themeId")
     public ReservationWaitingResult create(String guestName, LocalDate date, Long timeId, Long themeId) {
         ReservationTime time = getReservationTime(timeId);
         Theme theme = getTheme(themeId);
