@@ -38,15 +38,13 @@ public class DistributedLockAop {
         String key = getKey(signature.getParameterNames(), joinPoint.getArgs(), distributedLock.key());
         RLock rLock = redissonClient.getLock(key);
 
-        boolean available = false;
         try {
-            available = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
-            if(!available) {
+            if(!rLock.tryLock(distributedLock.waitTime(), distributedLock.timeUnit())) {
                 throw new DomainException(ACQUIRE_LOCK_FAIL);
             }
             return joinPoint.proceed();
         } finally {
-            if (available && rLock.isHeldByCurrentThread()) {
+            if (rLock.isHeldByCurrentThread()) {
                 rLock.unlock();
             }
         }
