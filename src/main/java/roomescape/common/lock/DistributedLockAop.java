@@ -14,9 +14,10 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import roomescape.common.exception.DomainException;
-import roomescape.common.exception.GlobalErrorCode;
 
 import java.lang.reflect.Method;
+
+import static roomescape.reservation.exception.ReservationErrorCode.*;
 
 @Aspect
 @Component
@@ -41,7 +42,7 @@ public class DistributedLockAop {
         try {
             available = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
             if(!available) {
-                throw new DomainException(GlobalErrorCode.ACQUIRE_LOCK_FAIL);
+                throw new DomainException(ACQUIRE_LOCK_FAIL);
             }
             return joinPoint.proceed();
         } finally {
