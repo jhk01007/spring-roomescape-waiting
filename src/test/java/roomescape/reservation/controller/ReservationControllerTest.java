@@ -15,6 +15,7 @@ import roomescape.reservation.domain.Status;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
 import roomescape.reservationtime.controller.dto.ReservationTimeResponse;
 import roomescape.test_config.ControllerTest;
+import roomescape.test_config.MockedBean;
 import roomescape.theme.controller.dto.ThemeResponse;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.theme.domain.Theme;
@@ -52,7 +53,7 @@ class ReservationControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
+    @MockedBean
     private ReservationService reservationService;
 
     @Test

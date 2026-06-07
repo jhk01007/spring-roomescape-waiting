@@ -11,6 +11,7 @@ import roomescape.reservationtime.controller.dto.ReservationTimeResponse;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.service.ReservationTimeService;
 import roomescape.test_config.ControllerTest;
+import roomescape.test_config.MockedBean;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -32,7 +33,7 @@ class ReservationTimeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
+    @MockedBean
     private ReservationTimeService reservationTimeService;
 
     @Test

@@ -1,10 +1,8 @@
 package roomescape.test_config;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import roomescape.reservation.service.ReservationService;
-import roomescape.reservationtime.service.ReservationTimeService;
-import roomescape.theme.service.ThemeService;
+import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,10 +12,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @WebMvcTest
-@MockitoBean(types = {
-        ReservationService.class,
-        ReservationTimeService.class,
-        ThemeService.class
+@Import(AutoMockControllerDependencyConfig.class)
+@ExtendWith({
+        MockedBeanFieldInjectionExtension.class,
+        AutoMockResetExtension.class
 })
 public @interface ControllerTest {
 }
