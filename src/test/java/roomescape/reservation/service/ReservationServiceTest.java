@@ -8,23 +8,17 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Import;
 import roomescape.common.exception.DomainException;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
-import roomescape.reservation.repository.JdbcReservationRepository;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservation.service.dto.ReservationWaitingResult;
-import roomescape.reservation.service.validator.ReservationValidator;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.reservationtime.repository.JdbcReservationTimeRepository;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
 import roomescape.test_config.MutableClock;
-import roomescape.test_config.TestClockConfig;
+import roomescape.test_config.ServiceTest;
 import roomescape.theme.domain.Theme;
-import roomescape.theme.repository.JdbcThemeRepository;
 import roomescape.theme.repository.ThemeRepository;
 
 import java.time.LocalDate;
@@ -36,15 +30,7 @@ import static roomescape.reservation.domain.Status.*;
 import static roomescape.reservation.exception.ReservationErrorCode.*;
 import static roomescape.reservationtime.exeption.ReservationTimeErrorCode.*;
 
-@JdbcTest
-@Import({
-        TestClockConfig.class,
-        ReservationService.class,
-        JdbcReservationRepository.class,
-        JdbcReservationTimeRepository.class,
-        JdbcThemeRepository.class,
-        ReservationValidator.class
-})
+@ServiceTest
 class ReservationServiceTest {
 
     @Autowired
