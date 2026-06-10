@@ -7,7 +7,7 @@ import io.restassured.response.Response;
 import roomescape.reservation.controller.dto.ReservationCreateRequest;
 import roomescape.reservation.controller.dto.ReservationEditRequest;
 import roomescape.reservationtime.controller.dto.ReservationTimeCreateRequest;
-import roomescape.test_config.MutableClock;
+import roomescape.test_config.clock.MutableClock;
 import roomescape.theme.controller.dto.ThemeCreateRequest;
 
 import java.time.LocalDate;

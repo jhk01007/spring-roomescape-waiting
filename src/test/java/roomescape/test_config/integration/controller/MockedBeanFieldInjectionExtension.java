@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.integration.controller;
 
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;

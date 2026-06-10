@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.integration.controller;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

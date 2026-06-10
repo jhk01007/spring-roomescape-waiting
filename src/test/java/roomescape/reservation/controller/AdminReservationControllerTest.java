@@ -15,8 +15,8 @@ import roomescape.reservation.controller.dto.ReservationResponse;
 import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.test_config.ControllerTest;
-import roomescape.test_config.MockedBean;
+import roomescape.test_config.integration.controller.ControllerTest;
+import roomescape.test_config.integration.controller.MockedBean;
 import roomescape.theme.domain.Theme;
 import roomescape.reservation.service.ReservationService;
 

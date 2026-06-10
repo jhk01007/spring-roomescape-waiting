@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.integration.controller;
 
 import org.mockito.Mockito;
 import org.springframework.beans.BeansException;
@@ -20,7 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
-class AutoMockControllerDependencies implements BeanDefinitionRegistryPostProcessor {
+class AutoWebMvcTestMockBeans implements BeanDefinitionRegistryPostProcessor {
 
     static final String AUTO_MOCK_ATTRIBUTE = "roomescape.autoMock";
 
@@ -123,9 +123,5 @@ class AutoMockControllerDependencies implements BeanDefinitionRegistryPostProces
         }
 
         return beanName;
-    }
-
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 }

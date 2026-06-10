@@ -3,6 +3,7 @@ package roomescape.theme.domain;
 import org.junit.jupiter.api.Test;
 import roomescape.common.exception.DomainException;
 import roomescape.common.exception.ErrorPolicy;
+import roomescape.theme.domain.Theme;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

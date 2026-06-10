@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import roomescape.common.dto.PageResult;
@@ -14,6 +12,7 @@ import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservationtime.domain.ReservationTime;
+import roomescape.test_config.integration.repository.RepositoryTest;
 import roomescape.test_config.fixture.SQLFixtureGenerator;
 import roomescape.theme.domain.Theme;
 
@@ -31,8 +30,7 @@ import static roomescape.reservation.domain.Status.*;
 import static roomescape.reservation.domain.Status.CONFIRMED;
 import static roomescape.reservation.domain.Status.WAITING;
 
-@JdbcTest
-@Import({JdbcReservationRepository.class, SQLFixtureGenerator.class})
+@RepositoryTest
 class JdbcReservationRepositoryTest {
 
     @Autowired

@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.clock;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

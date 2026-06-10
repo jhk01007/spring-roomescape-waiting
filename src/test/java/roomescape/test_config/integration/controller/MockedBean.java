@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.integration.controller;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.clock;
 
 
 import java.time.*;

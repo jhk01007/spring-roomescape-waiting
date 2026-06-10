@@ -1,4 +1,4 @@
-package roomescape.test_config;
+package roomescape.test_config.integration.controller;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 class AutoMockControllerDependencyConfig {
 
     @Bean
-    static AutoMockControllerDependencies autoMockControllerDependencies() {
-        return new AutoMockControllerDependencies();
+    static AutoWebMvcTestMockBeans autoMockControllerDependencies() {
+        return new AutoWebMvcTestMockBeans();
     }
 }
