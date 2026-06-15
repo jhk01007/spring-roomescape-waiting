@@ -12,7 +12,7 @@ import roomescape.reservation.domain.Reservation;
 import roomescape.reservation.domain.Status;
 import roomescape.reservation.repository.dto.ReservationWaitingDto;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.test_config.integration.repository.RepositoryTest;
+import roomescape.test_config.integration.db.repository.RepositoryTest;
 import roomescape.test_config.fixture.SQLFixtureGenerator;
 import roomescape.theme.domain.Theme;
 

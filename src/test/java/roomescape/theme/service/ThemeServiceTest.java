@@ -9,10 +9,9 @@ import roomescape.reservation.domain.Status;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservation.repository.ReservationRepository;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
-import roomescape.test_config.integration.service.ServiceTest;
+import roomescape.test_config.integration.db.service.ServiceTest;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.repository.ThemeRepository;
-import roomescape.theme.service.ThemeService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

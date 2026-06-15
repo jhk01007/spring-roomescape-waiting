@@ -16,7 +16,7 @@ import roomescape.reservation.service.dto.ReservationWaitingResult;
 import roomescape.reservationtime.domain.ReservationTime;
 import roomescape.reservationtime.repository.ReservationTimeRepository;
 import roomescape.test_config.clock.MutableClock;
-import roomescape.test_config.integration.service.ServiceTest;
+import roomescape.test_config.integration.db.service.ServiceTest;
 import roomescape.theme.domain.Theme;
 import roomescape.theme.repository.ThemeRepository;
 

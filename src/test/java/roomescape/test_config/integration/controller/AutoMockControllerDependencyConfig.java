@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 class AutoMockControllerDependencyConfig {
 
     @Bean
-    static AutoWebMvcTestMockBeans autoMockControllerDependencies() {
-        return new AutoWebMvcTestMockBeans();
+    static AutoWebMvcTestMockBeansInjector autoMockControllerDependencies() {
+        return new AutoWebMvcTestMockBeansInjector();
     }
 }

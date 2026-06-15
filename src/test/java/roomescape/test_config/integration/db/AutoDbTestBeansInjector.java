@@ -1,8 +1,7 @@
-package roomescape.test_config.integration;
+package roomescape.test_config.integration.db;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -19,22 +18,22 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class AutoJdbcTestBeans implements BeanDefinitionRegistryPostProcessor {
+public class AutoDbTestBeansInjector implements BeanDefinitionRegistryPostProcessor {
 
     private static final String BASE_PACKAGE = "roomescape";
 
     private final TestSlice testSlice;
 
-    private AutoJdbcTestBeans(TestSlice testSlice) {
+    private AutoDbTestBeansInjector(TestSlice testSlice) {
         this.testSlice = testSlice;
     }
 
-    public static AutoJdbcTestBeans serviceTestBeans() {
-        return new AutoJdbcTestBeans(TestSlice.SERVICE);
+    public static AutoDbTestBeansInjector serviceTestBeans() {
+        return new AutoDbTestBeansInjector(TestSlice.SERVICE);
     }
 
-    public static AutoJdbcTestBeans repositoryTestBeans() {
-        return new AutoJdbcTestBeans(TestSlice.REPOSITORY);
+    public static AutoDbTestBeansInjector repositoryTestBeans() {
+        return new AutoDbTestBeansInjector(TestSlice.REPOSITORY);
     }
 
     @Override

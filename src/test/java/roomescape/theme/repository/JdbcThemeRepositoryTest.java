@@ -8,10 +8,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import roomescape.reservation.domain.Status;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.test_config.integration.repository.RepositoryTest;
+import roomescape.test_config.integration.db.repository.RepositoryTest;
 import roomescape.test_config.fixture.SQLFixtureGenerator;
 import roomescape.theme.domain.Theme;
-import roomescape.theme.repository.JdbcThemeRepository;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;

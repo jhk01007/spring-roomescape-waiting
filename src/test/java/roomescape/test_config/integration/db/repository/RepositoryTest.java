@@ -1,4 +1,4 @@
-package roomescape.test_config.integration.repository;
+package roomescape.test_config.integration.db.repository;
 
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;

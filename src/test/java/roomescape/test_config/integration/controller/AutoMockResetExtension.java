@@ -25,6 +25,6 @@ class AutoMockResetExtension implements AfterEachCallback {
     }
 
     private boolean isAutoMockBean(org.springframework.beans.factory.config.BeanDefinition beanDefinition) {
-        return Boolean.TRUE.equals(beanDefinition.getAttribute(AutoWebMvcTestMockBeans.AUTO_MOCK_ATTRIBUTE));
+        return Boolean.TRUE.equals(beanDefinition.getAttribute(AutoWebMvcTestMockBeansInjector.AUTO_MOCK_ATTRIBUTE));
     }
 }

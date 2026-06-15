@@ -3,7 +3,6 @@ package roomescape.test_config.integration.controller;
 import org.mockito.Mockito;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -20,7 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
-class AutoWebMvcTestMockBeans implements BeanDefinitionRegistryPostProcessor {
+class AutoWebMvcTestMockBeansInjector implements BeanDefinitionRegistryPostProcessor {
 
     static final String AUTO_MOCK_ATTRIBUTE = "roomescape.autoMock";
 

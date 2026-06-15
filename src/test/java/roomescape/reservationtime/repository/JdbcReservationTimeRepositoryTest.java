@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import roomescape.reservationtime.domain.ReservationTime;
-import roomescape.test_config.integration.repository.RepositoryTest;
+import roomescape.test_config.integration.db.repository.RepositoryTest;
 import roomescape.test_config.fixture.SQLFixtureGenerator;
 
 import java.sql.Timestamp;
